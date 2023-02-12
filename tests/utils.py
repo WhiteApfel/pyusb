@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -68,14 +68,13 @@ def get_list_data2(length = 8):
     return data
 
 def get_str_data1(length = 8):
-    if sys.version_info[0] >= 3:
-        # On Python 3, string char is 4 bytes long
-        length = int(length / 4)
+    # On Python 3, string char is 4 bytes long
+    length = int(length / 4)
     return ''.join([chr(x) for x in range(length)])
 
 def get_str_data2(length = 8):
-    if sys.version_info[0] >= 3:
-        length = int(length / 4)
+    # On Python 3, string char is 4 bytes long
+    length = int(length / 4)
     data = list(range(length))
     data.reverse()
     return ''.join([chr(x) for x in data])
@@ -97,7 +96,7 @@ def find_my_device(backend = None):
 
 def run_tests(suite):
     runner = unittest.TextTestRunner()
-    runner.run(suite)
+    return runner.run(suite)
 
 def data_len(data):
     a = _interop.as_array(data)

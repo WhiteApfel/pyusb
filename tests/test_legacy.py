@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -37,6 +37,7 @@ import usb.core
 from usb._debug import methodtrace
 
 class LegacyTest(unittest.TestCase):
+    __test__ = False
     @methodtrace(utils.logger)
     def __init__(self):
         unittest.TestCase.__init__(self)
@@ -237,7 +238,7 @@ class LegacyTest(unittest.TestCase):
                     0,
                     struct.calcsize(dev_fmt))
 
-        self.assertEqual(struct.unpack(dev_fmt, ret.tostring()), dev_descr)
+        self.assertEqual(struct.unpack(dev_fmt, ret.tobytes()), dev_descr)
 
     def __write_read(self, write_fn, read_fn, ep):
         for data in (utils.get_array_data1(), utils.get_array_data2()):

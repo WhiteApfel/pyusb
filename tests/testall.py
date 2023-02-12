@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -32,6 +32,7 @@ import utils
 import unittest
 import glob
 import os.path
+import sys
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -41,4 +42,6 @@ if __name__ == '__main__':
         if hasattr(m, 'get_suite'):
             suite.addTest(m.get_suite())
 
-    utils.run_tests(suite)
+    ret = utils.run_tests(suite)
+    if not ret.wasSuccessful():
+        sys.exit(1)

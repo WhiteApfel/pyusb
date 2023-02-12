@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -121,7 +121,8 @@ class _ResourceManager(object):
         self._active_cfg_index = None
         self.dev = dev
         self.handle = None
-        self._claimed_intf = _interop._set()
+        self._claimed_intf = set()
+        self._intf_setting = {}
         self._ep_info = {}
         self.lock = threading.RLock()
 
@@ -163,6 +164,7 @@ class _ResourceManager(object):
         # which tracks the Configuration, which tracks the Device)
         self._active_cfg_index = cfg.index
 
+        self._intf_setting.clear()
         self._ep_info.clear()
 
     @synchronized
@@ -206,6 +208,8 @@ class _ResourceManager(object):
                 i = util.find_descriptor(cfg, bInterfaceNumber=intf, bAlternateSetting=alt)
             else:
                 i = util.find_descriptor(cfg, bInterfaceNumber=intf)
+            if i is None:
+                raise ValueError('No matching interface (' + str(intf) + ',' + str(alt) + ')')
 
         self.managed_claim_interface(device, i)
 
@@ -213,6 +217,9 @@ class _ResourceManager(object):
             alt = i.bAlternateSetting
 
         self.backend.set_interface_altsetting(self.handle, i.bInterfaceNumber, alt)
+
+        self._intf_setting[i.bInterfaceNumber] = alt
+        self._ep_info.clear()
 
     @synchronized
     def setup_request(self, device, endpoint):
@@ -234,6 +241,8 @@ class _ResourceManager(object):
             return self._ep_info[endpoint_address]
         except KeyError:
             for intf in self.get_active_configuration(device):
+                if intf.bAlternateSetting != self._intf_setting.get(intf.bInterfaceNumber, 0):
+                    continue
                 ep = util.find_descriptor(intf, bEndpointAddress=endpoint_address)
                 if ep is not None:
                     self._ep_info[endpoint_address] = (intf, ep)
@@ -271,6 +280,7 @@ class _ResourceManager(object):
         self.release_all_interfaces(device)
         if close_handle:
             self.managed_close()
+        self._intf_setting.clear()
         self._ep_info.clear()
         self._active_cfg_index = None
 
@@ -737,6 +747,16 @@ class Device(_objfinalizer.AutoFinalizedObject):
     will be used instead. This property can be set by the user at anytime.
     """
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return (self.backend, self.bus, self.address) == \
+                   (other.backend, other.bus, other.address)
+        else:
+            return NotImplemented
+
+    def __hash__(self):
+        return hash((self.backend, self.bus, self.address))
+
     def __repr__(self):
         return "<" + self._str() + ">"
 
@@ -1176,7 +1196,8 @@ class Device(_objfinalizer.AutoFinalizedObject):
         return Configuration(self, index)
 
     def _finalize_object(self):
-        self._ctx.dispose(self)
+        if hasattr(self, '_ctx'):
+            self._ctx.dispose(self)
 
     def __get_timeout(self, timeout):
         if timeout is not None:
@@ -1324,7 +1345,7 @@ def find(find_all=False, backend = None, custom_match = None, **args):
         for dev in backend.enumerate_devices():
             d = Device(dev, backend)
             tests = (val == _try_getattr(d, key) for key, val in kwargs.items())
-            if _interop._all(tests) and (custom_match is None or custom_match(d)):
+            if all(tests) and (custom_match is None or custom_match(d)):
                 yield d
 
     if backend is None:
@@ -1344,7 +1365,7 @@ def find(find_all=False, backend = None, custom_match = None, **args):
         return device_iter(**args)
     else:
         try:
-            return _interop._next(device_iter(**args))
+            return next(device_iter(**args))
         except StopIteration:
             return None
 

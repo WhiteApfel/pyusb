@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -140,8 +140,9 @@ class DeviceHandle(_objfinalizer.AutoFinalizedObject):
         self.__claimed_interface = None
 
     def _finalize_object(self):
-        util.dispose_resources(self.dev)
-        self.dev = None
+        if hasattr(self, 'self.dev') and self.dev:
+            util.dispose_resources(self.dev)
+            self.dev = None
 
     def bulkWrite(self, endpoint, buffer, timeout = 100):
         r"""Perform a bulk write request to the endpoint specified.

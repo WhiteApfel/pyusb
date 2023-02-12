@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -41,6 +41,7 @@ from usb._debug import methodtrace
 import sys
 
 class ControlTest(unittest.TestCase):
+    __test__ = False
     @methodtrace(utils.logger)
     def __init__(self, dev):
         unittest.TestCase.__init__(self)
@@ -103,7 +104,7 @@ class ControlTest(unittest.TestCase):
                     self.dev.bDescriptorType,
                     0
                 )
-        self.assertEqual(struct.unpack(dev_fmt, ret.tostring()), dev_descr)
+        self.assertEqual(struct.unpack(dev_fmt, ret.tobytes()), dev_descr)
 
     @methodtrace(utils.logger)
     def test_getset_configuration(self):

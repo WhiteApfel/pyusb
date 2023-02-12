@@ -28,47 +28,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import usb.util
+from usb._debug import methodtrace
+import unittest
+import utils
 
-ID_VENDOR = 0x04d8
-ID_PRODUCT = 0xfa2e
+from array import array
+from usb._interop import as_array
 
-# transfer interfaces
-INTF_BULK = 0
-INTF_INTR = 1
-INTF_ISO = 2
+class InteropTest(unittest.TestCase):
+    @methodtrace(utils.logger)
+    def test_none_as_array(self):
+        self.assertEqual(as_array(None), array('B'))
 
-# endpoints address
-EP_BULK = 1
-EP_INTR = 2
-EP_ISO = 3
+    @methodtrace(utils.logger)
+    def test_byte_array_as_array(self):
+        data = array('B', [10, 20, 30])
+        self.assertEqual(as_array(data), data)
+        self.assertIs(as_array(data), data)
 
-# test type
-TEST_NONE = 0
-TEST_PCREAD = 1
-TEST_PCWRITE = 2
-TEST_LOOP = 3
+    @methodtrace(utils.logger)
+    def test_byte_list_as_array(self):
+        self.assertEqual(as_array([10, 20, 30]), array('B', [10, 20, 30]))
 
-# Vendor requests
-PICFW_SET_TEST = 0x0e
-PICFW_SET_TEST = 0x0f
-PICFW_SET_VENDOR_BUFFER = 0x10
-PICFW_GET_VENDOR_BUFFER = 0x11
+    @methodtrace(utils.logger)
+    def test_byte_tuple_as_array(self):
+        self.assertEqual(as_array((10, 20, 30)), array('B', [10, 20, 30]))
 
-def set_test_type(t, dev = None):
-    if dev is None:
-        dev = usb.core.find(idVendor = ID_VENDOR, idProduct = ID_PRODUCT)
+    @methodtrace(utils.logger)
+    def test_bytes_as_array(self):
+        self.assertEqual(as_array(b'\x10\x20\x30'), array('B', [16, 32, 48]))
 
-    bmRequestType = usb.util.build_request_type(
-                        usb.util.CTRL_OUT,
-                        usb.util.CTRL_TYPE_VENDOR,
-                        usb.util.CTRL_RECIPIENT_INTERFACE
-                    )
+    @methodtrace(utils.logger)
+    def test_unicode_string_as_array(self):
+        self.assertEqual(as_array('Πύ'), array('B', b'\xce\xa0\xcf\x8d'))
 
-    dev.ctrl_transfer(
-        bmRequestType = bmRequestType,
-        bRequest = PICFW_SET_TEST,
-        wValue = t,
-        wIndex = 0
-    )
 
+def get_suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(InteropTest))
+    return suite
+
+if __name__ == '__main__':
+    utils.run_tests(get_suite())

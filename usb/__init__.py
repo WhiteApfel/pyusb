@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -48,8 +48,19 @@ import os
 __author__ = 'Wander Lairson Costa'
 
 # Use Semantic Versioning, http://semver.org/
-version_info = (1, 0, 2)
-__version__ = '%d.%d.%d' % version_info
+try:
+    from usb._version import version as __version__
+except ImportError:
+    __version__ = '0.0.0'
+
+def _get_extended_version_info(version):
+    import re
+    m = re.match(r'(\d+)\.(\d+)(\.(\d+))?[.-]?(.*)', version)
+    major, minor, _, patch, suffix = m.groups()
+    return int(major), int(minor), int(patch or "0"), suffix
+
+extended_version_info = _get_extended_version_info(__version__)
+version_info = extended_version_info[:3]
 
 __all__ = ['legacy', 'control', 'core', 'backend', 'util', 'libloader']
 

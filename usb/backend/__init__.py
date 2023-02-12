@@ -1,5 +1,5 @@
 # Copyright 2009-2017 Wander Lairson Costa
-# Copyright 2009-2020 PyUSB contributors
+# Copyright 2009-2021 PyUSB contributors
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -211,7 +211,7 @@ class IBackend(_objfinalizer.AutoFinalizedObject):
 
         This method should only be called when the interface has more than
         one alternate setting. The dev_handle is the value returned by the
-        open_device() method. intf and altsetting are respectivelly the
+        open_device() method. intf and altsetting are respectively the
         bInterfaceNumber and bAlternateSetting fields of the related interface.
         """
         _not_implemented(self.set_interface_altsetting)
@@ -283,7 +283,7 @@ class IBackend(_objfinalizer.AutoFinalizedObject):
         _not_implemented(self.intr_write)
 
     def intr_read(self, dev_handle, ep, intf, size, timeout):
-        r"""Perform an interrut read.
+        r"""Perform an interrupt read.
 
         dev_handle is the value returned by the open_device() method.
         The ep parameter is the bEndpointAddress field whose endpoint
