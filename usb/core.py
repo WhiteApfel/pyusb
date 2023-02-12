@@ -1048,8 +1048,13 @@ class Device(_objfinalizer.AutoFinalizedObject):
         else:
             return buff
 
-    def submit_read(self, endpoint, size_or_buffer, timeout = None):
+    def aread(self, endpoint, size_or_buffer, timeout = None):
         backend = self._ctx.backend
+
+        # TODO: Limited implementation warning
+        # from usb.backend.libusb1 import _LibUSB as _LibUSB1
+        # if not isinstance(backend, _LibUSB1):
+        #     raise NotImplementedError("`Device.aread() is implemented only for libusb 1.0")
 
         fn_map = {
                     util.ENDPOINT_TYPE_BULK:backend.submit_bulk_read,
@@ -1065,15 +1070,23 @@ class Device(_objfinalizer.AutoFinalizedObject):
         else:
             buff = util.create_buffer(size_or_buffer)
 
-        return fn(
+        # TODO: Add exceptions
+        transfer = fn(
                 self._ctx.handle,
                 ep.bEndpointAddress,
                 intf.bInterfaceNumber,
                 buff,
                 self.__get_timeout(timeout))
 
-    def submit_write(self, endpoint, data, timeout = None):
+        return transfer.result()
+
+    def awrite(self, endpoint, data, timeout = None):
         backend = self._ctx.backend
+
+        # TODO: Limited implementation warning
+        # from usb.backend.libusb1 import _LibUSB as _LibUSB1
+        # if not isinstance(backend, _LibUSB1):
+        #     raise NotImplementedError("`Device.awrite() is implemented only for libusb 1.0")
 
         fn_map = {
                     util.ENDPOINT_TYPE_BULK:backend.submit_bulk_write,
@@ -1084,13 +1097,16 @@ class Device(_objfinalizer.AutoFinalizedObject):
         intf, ep = self._ctx.setup_request(self, endpoint)
         fn = fn_map[util.endpoint_type(ep.bmAttributes)]
 
-        return fn(
+        # TODO: Add exceptions
+        transfer = fn(
                 self._ctx.handle,
                 ep.bEndpointAddress,
                 intf.bInterfaceNumber,
                 _interop.as_array(data),
                 self.__get_timeout(timeout)
             )
+
+        return transfer.result()
 
     def ctrl_transfer(self, bmRequestType, bRequest, wValue=0, wIndex=0,
             data_or_wLength = None, timeout = None):
